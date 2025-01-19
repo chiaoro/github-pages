@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>刮刮樂遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f8f8f8;
+    }
+    #scratchCanvas {
+      position: relative;
+      width: 300px;
+      height: 200px;
+      border: 2px solid #ccc;
+    }
+    #hiddenMessage {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="scratchCanvas">
+    <div id="hiddenMessage">恭喜中獎！🎉</div>
+    <canvas id="scratchLayer" width="300" height="200"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('scratchLayer');
+    const ctx = canvas.getContext('2d');
+
+    // 初始化灰色遮罩
+    ctx.fillStyle = '#888';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 實現刮刮效果
+    canvas.addEventListener('touchmove', scratch, { passive: false }); // 觸摸
+    canvas.addEventListener('mousemove', scratch); // 鼠標
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mouseup', stopDrawing);
+
+    let isDrawing = false;
+
+    function startDrawing() {
+      isDrawing = true;
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+      checkIfCleared(); // 檢查是否刮開了足夠的區域
+    }
+
+    function scratch(event) {
+      if (!isDrawing) return;
+
+      // 獲取觸摸點位置
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.touches ? event.touches[0].clientX : event.clientX) - rect.left;
+      const y = (event.touches ? event.touches[0].clientY : event.clientY) - rect.top;
+
+      // 模擬刮除
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function checkIfCleared() {
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const clearedPixels = imgData.filter((value, index) => index % 4 === 3 && value === 0); // 透明像素
+
+      const clearedRatio = clearedPixels.length / (canvas.width * canvas.height);
+      if (clearedRatio > 0.5) {
+        alert('已成功刮開超過50%！');
+      }
+    }
+  </script>
+</body>
+</html>
